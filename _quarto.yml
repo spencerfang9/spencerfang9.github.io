@@ -20,14 +20,14 @@ website:
     # your social media handles
     right:
       - icon: github
-      text: Github
-      href: https://github.com/spencerfang9
-    - icon: linkedin
-      text: LinkedIn
-      href: https://www.linkedin.com/in/fanyun-fang-321443180/
-    - icon: envelope
-      text: Email
-      href: "fxf116@case.edu" 
+        text: Github
+        href: https://github.com/spencerfang9
+      - icon: linkedin
+        text: LinkedIn
+        href: https://www.linkedin.com/in/fanyun-fang-321443180/
+      - icon: envelope
+        text: Email
+        href: "fxf116@case.edu" 
   
   
 
