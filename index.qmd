@@ -1,0 +1,29 @@
+---
+about:
+  template: jolla
+  id: about-block
+  image: "img/My image.jpg"
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/spencerfang9
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/fanyun-fang-321443180/
+    - icon: envelope
+      text: Email
+      href: "fxf116@case.edu"  
+---
+
+::: {#about-block}
+:::
+
+# Welcome to my website!
+
+Hi! I’m Fanyun Fang, a research technician at CWRU pharmacology department with a background in biology and medical physiology and a strong interest in neuroscience and biomedical research. I’m especially fascinated by the brain, behavior, and the biological mechanisms that shape human health.
+
+Outside of research, I’m an animal lover and a proud pet parent to three cats and a snake. When I’m not in the lab, you’ll usually find me reading, discovering new music, or spending time with my pets. I enjoy exploring new ideas through both science and literature, and I’m always curious about the world around me.
+Please feel free to [contact me](fxf116@case.edu) if you have any questions or would like to discuss potential projects.
+
+
+
