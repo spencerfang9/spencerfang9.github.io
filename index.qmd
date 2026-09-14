@@ -12,7 +12,7 @@ about:
       href: https://www.linkedin.com/in/fanyun-fang-321443180/
     - icon: envelope
       text: Email
-      href: "fxf116@case.edu"  
+      href: "mailto:fxf116@case.edu"  
 ---
 
 ::: {#about-block}
