@@ -13,7 +13,7 @@ website:
     # your sub-pages
     left:
       - text: "Dashboard"
-        href: projects/index.qmd
+        href: Dashboard/index.qmd
       - text: "CV"
         href: cv/index.qmd
     
