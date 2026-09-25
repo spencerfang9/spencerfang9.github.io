@@ -12,9 +12,6 @@ execute:
 ---
 
 ```{r setup}
-# Load required libraries
-# Install once in the R Console (not inside the render pipeline):
-# install.packages(c("haven", "dplyr", "ggplot2", "knitr", "scales", "DT"))
 library(haven)
 library(dplyr)
 library(ggplot2)
@@ -22,10 +19,8 @@ library(knitr)
 library(scales)
 library(DT)
 
-# Read NHANES dataset
 demo_data <- read_xpt("DEMO_L.XPT")
 
-# Data preparation
 demo_cleaned <- demo_data %>%
   mutate(
     income_4cat = case_when(
@@ -46,15 +41,11 @@ demo_cleaned <- demo_data %>%
 
 navy_blue     <- "#12263F"
 golden_yellow <- "#B88E10"
-dusty_blue    <- "#7C93AC"
-dusty_red     <- "#B36B6B"
 
-# ---- Value box numbers ----
 total_participants <- nrow(demo_cleaned)
 low_income_pct     <- mean(demo_cleaned$income_4cat == "Low Income") * 100
 high_income_pct    <- mean(demo_cleaned$income_4cat == "High Income") * 100
 
-# ---- Summary table data ----
 income_summary <- demo_cleaned %>%
   count(income_4cat) %>%
   mutate(proportion = n / sum(n))
@@ -93,7 +84,7 @@ Demographics
 
 ::: {.callout-note collapse="true"}
 ## Disclaimer
-Income categories are derived from the family income-to-poverty ratio (`INDFMPIR`). Records with missing income or gender values are excluded from this dashboard.
+Income categories are derived from the family income-to-poverty ratio (`INDFMPIR`). Records with missing income or gender values are excluded.
 :::
 
 # ALL
@@ -152,15 +143,10 @@ ggplot(income_summary, aes(x = income_4cat, y = proportion, fill = income_4cat))
   scale_fill_brewer(palette = "Set2") +
   labs(x = NULL, y = "Proportion") +
   theme_minimal(base_size = 12) +
-  theme(
-    axis.text.x = element_text(size = 10),
-    panel.grid.major.x = element_blank()
-  )
+  theme(panel.grid.major.x = element_blank())
 ```
 
 ## Row {height="38%"}
-
-### Column {width="100%"}
 
 #### Gender Composition Across Income Tiers
 
@@ -169,15 +155,9 @@ ggplot(demo_cleaned, aes(y = income_4cat, fill = gender)) +
   geom_bar(position = "fill", width = 0.6) +
   scale_x_continuous(labels = percent_format(), name = "Proportion") +
   scale_y_discrete(limits = rev(levels(demo_cleaned$income_4cat)), name = NULL) +
-  scale_fill_manual(
-    values = c("Male" = navy_blue, "Female" = golden_yellow),
-    name = "Gender"
-  ) +
+  scale_fill_manual(values = c("Male" = navy_blue, "Female" = golden_yellow), name = "Gender") +
   theme_minimal(base_size = 12) +
-  theme(
-    legend.position = "right",
-    panel.grid.major.y = element_blank()
-  )
+  theme(legend.position = "right", panel.grid.major.y = element_blank())
 ```
 
 # DATA
