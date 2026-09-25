@@ -51,5 +51,3 @@ The headline takeaway is unsurprising but nice to see confirmed in the data dire
 
 A few honest caveats, in the spirit of not overselling a descriptive dashboard:
 - This is cross-sectional data, so "income rises with age" is a snapshot comparison across different people, not a longitudinal claim about anyone's income actually rising.I didn't apply NHANES's sampling weights (`WTINT2YR`/`WTMEC2YR`), which means these proportions describe *this sample*, not a weighted estimate of the U.S. population. For a dashboard meant to be quickly legible, I chose to leave the weighting complexity out — but it's the first thing I'd add if this were feeding into an actual analysis rather than a portfolio piece.No formal significance testing means "mostly confirmed" is a visual impression, not a statistical claim.
-
-If you want to poke around the dashboard yourself, it's linked in the nav bar above. And if you spot something in the analysis you'd do differently — or you also have opinions about the correct number of cats a household should have — [reach out](mailto:fxf116@case.edu), I'd love to hear it.
