@@ -1,136 +1,127 @@
 ---
-title: Dashboard
+title: "Dashboard"
+format: 
+  html:
+    page-layout: full
+execute:
+  echo: false
+  warning: false
+  message: false
 ---
 
-```{r, message = FALSE, warning = FALSE}
-library(palmerpenguins)
-library(tidyverse)
+```{r setup}
+# Load required libraries
+# NOTE: Install these once manually in the R Console before rendering:
+# install.packages(c("haven", "dplyr", "ggplot2", "knitr", "scales", "DT"))
 library(haven)
-demo_2021_2023 <- read_xpt("DEMO_L.XPT")
-glimpse(demo_2021_2023)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(scales)
+library(DT)
 
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(
-  nhanesA,    # Access official NHANES data
-  tidyverse,  # Data cleaning and manipulation
-  janitor,    # Clean variable names
-  mice,       # Single imputation for missing values (Study 2)
-  rsample     # Train/Test data splitting (Study 2)
-)
+# Read NHANES dataset
+demo_data <- read_xpt("DEMO_L.XPT")
 
-set.seed(431) # Set seed for reproducibility
-
-# Demographics data (DEMO)
-demo_raw <- nhanes("P_DEMO") %>%
-  select(SEQN, RIDSTATR, RIDAGEYR, RIAGENDR, RIDRETH3, INDHHIN2, DMDEDUC2)
-
-# Body measures data (BMX)
-bmx_raw <- nhanes("P_BMX") %>%
-  select(SEQN, BMXBMI, BMXHT, BMXWT, BMXWAIST)
-
-# Blood pressure data (BPXO)
-bpx_raw <- nhanes("P_BPXO") %>%
-  select(SEQN, BPXOSY1, BPXODI1)
-
-# Laboratory data (GHB & GLU)
-ghb_raw <- nhanes("P_GHB") %>% select(SEQN, LBXGH)  # Glycohemoglobin (HbA1c)
-glu_raw <- nhanes("P_GLU") %>% select(SEQN, LBXGLU) # Fasting Glucose
-
-raw_merged <- demo_raw %>%
-  left_join(bmx_raw, by = "SEQN") %>%
-  left_join(bpx_raw, by = "SEQN") %>%
-  left_join(ghb_raw, by = "SEQN") %>%
-  left_join(glu_raw, by = "SEQN")
-
-data_processed <- raw_merged %>%
-  # Filter 1: Mandatory check for examined subjects (RIDSTATR == 2)
-  filter(RIDSTATR == 2) %>%
-  
-  # Filter 2: Retain adult population only (Age 20 and over)
-  filter(RIDAGEYR >= 20) %>%
-  
+# Data preparation
+demo_cleaned <- demo_data %>%
   mutate(
-    # Biological sex (1 = Male, 2 = Female)
-    sex = factor(case_when(
-      RIAGENDR == 1 ~ "Male",
-      RIAGENDR == 2 ~ "Female",
-      TRUE ~ NA_character_
-    )),
-    
-    # Race/Ethnicity (6 categories using RIDRETH3)
-    race_eth = factor(case_when(
-      RIDRETH3 == 1 ~ "Mexican American",
-      RIDRETH3 == 2 ~ "Other Hispanic",
-      RIDRETH3 == 3 ~ "Non-Hispanic White",
-      RIDRETH3 == 4 ~ "Non-Hispanic Black",
-      RIDRETH3 == 6 ~ "Non-Hispanic Asian",
-      RIDRETH3 == 7 ~ "Other/Multi-Racial",
-      TRUE ~ NA_character_
-    )),
-    
-    # Household income collapsed into 4 categories per project specifications
-    income_4cat = factor(case_when(
-      INDHHIN2 %in% c(1, 2, 3, 4, 13) ~ "Lowest (<20k)",
-      INDHHIN2 %in% c(5, 6, 7)         ~ "Low (20k-44.9k)",
-      INDHHIN2 %in% c(8, 9, 10)        ~ "High (45k-74.9k)",
-      INDHHIN2 %in% c(14, 15)          ~ "Highest (>=75k)",
-      TRUE ~ NA_character_ # Codes 77, 99, and missing are set to NA
-    ), levels = c("Lowest (<20k)", "Low (20k-44.9k)", "High (45k-74.9k)", "Highest (>=75k)")),
-    
-    # Educational attainment for adults (20+)
-    education = factor(case_when(
-      DMDEDUC2 %in% c(1, 2) ~ "Less than HS",
-      DMDEDUC2 == 3         ~ "HS Grad",
-      DMDEDUC2 == 4         ~ "Some College",
-      DMDEDUC2 == 5         ~ "College Grad",
-      TRUE ~ NA_character_
-    ), levels = c("Less than HS", "HS Grad", "Some College", "College Grad")),
-    
-    # Rename/recode quantitative variables
-    age = RIDAGEYR,
-    bmi = BMXBMI,
-    waist = BMXWAIST,
-    sys_bp = BPXOSY1,
-    dia_bp = BPXODI1,
-    hba1c = LBXGH,
-    fpg = LBXGLU
+    income_4cat = case_when(
+      INDFMPIR < 1.30                     ~ "Low Income",
+      INDFMPIR >= 1.30 & INDFMPIR < 3.50  ~ "Middle-Low Income",
+      INDFMPIR >= 3.50 & INDFMPIR < 5.00  ~ "Middle-High Income",
+      INDFMPIR >= 5.00                    ~ "High Income",
+      TRUE                                ~ NA_character_
+    ) %>% factor(
+      levels = c("Low Income", "Middle-Low Income", "Middle-High Income", "High Income")
+    ),
+    gender = factor(
+      ifelse(RIAGENDR == 1, "Male", "Female"),
+      levels = c("Male", "Female")
+    )
   ) %>%
-  
-  # Drop unused factor levels
-  droplevels() %>%
-  
-  # Select final analytic variables
-  select(
-    SEQN, RIDSTATR, age, sex, race_eth, income_4cat, education,
-    bmi, waist, sys_bp, dia_bp, hba1c, fpg
+  filter(!is.na(income_4cat), !is.na(gender))
+
+navy_blue <- "#12263F"
+golden_yellow <- "#B88E10"
+
+# Figure 1: Income category bar chart
+income_summary <- demo_cleaned %>%
+  count(income_4cat) %>%
+  mutate(proportion = n / sum(n))
+
+ggplot(income_summary, aes(x = income_4cat, y = proportion, fill = income_4cat)) +
+  geom_col(width = 0.6, show.legend = FALSE) +
+  geom_text(
+    aes(label = paste0(n, " (", percent(proportion, accuracy = 0.1), ")")),
+    vjust = -0.5,
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, max(income_summary$proportion) * 1.15)) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Family Income Category Distribution",
+    subtitle = "Proportion and total participant counts across income-to-poverty ratio tiers",
+    x = "Income Category",
+    y = "Proportion"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(color = "gray40", size = 10),
+    panel.grid.major.x = element_blank()
   )
-study1_df <- data_processed %>%
-  drop_na() # Remove any rows with missing values
 
-# Verify sample size (Must be between 500 and 7,500)
-cat("Study 1 Sample Size:", nrow(study1_df), "\n")
-write_csv(study1_df, "study1_clean.csv")
+# Figure 2: Income category by gender stacked bar chart
+ggplot(demo_cleaned, aes(y = income_4cat, fill = gender)) +
+  geom_bar(position = "fill", width = 0.6) +
+  scale_x_continuous(labels = percent_format(), name = "Proportion") +
+  scale_y_discrete(limits = rev(levels(demo_cleaned$income_4cat)), name = NULL) +
+  scale_fill_manual(
+    values = c("Male" = navy_blue, "Female" = golden_yellow),
+    name = "Gender"
+  ) +
+  labs(
+    title = "Gender Composition Across Income Tiers",
+    subtitle = "Percentage breakdown of males and females within each income category"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(color = "gray40", size = 10),
+    legend.position = "right",
+    panel.grid.major.y = element_blank()
+  )
 
-study2_base <- data_processed %>%
-  filter(!is.na(hba1c) & !is.na(bmi)) # Complete cases on Outcome & Key Predictor only
+# Summary table in the last section
+data_table <- demo_cleaned %>%
+  group_by(`Income Category` = income_4cat) %>%
+  summarise(
+    `Total Participants` = n(),
+    `Mean Age` = round(mean(RIDAGEYR, na.rm = TRUE), 1),
+    `Proportion (%)` = sprintf("%.1f%%", n() / nrow(demo_cleaned) * 100)
+  )
 
-# Single imputation using MICE (m = 1) for remaining covariates
-mice_out <- mice(study2_base, m = 1, method = "pmm", printFlag = FALSE)
-study2_imputed <- complete(mice_out)
-
-cat("Study 2 Imputed Dataset Sample Size:", nrow(study2_imputed), "\n")
-
-# Partition dataset: 70% Training (Development), 30% Testing (Validation)
-split_obj <- initial_split(study2_imputed, prop = 0.70)
-study2_train <- training(split_obj)
-study2_test  <- testing(split_obj)
-
-cat("Study 2 Training Set Sample Size:", nrow(study2_train), "\n")
-cat("Study 2 Testing Set Sample Size:", nrow(study2_test), "\n")
-
-# Export datasets
-write_csv(study2_train, "study2_train.csv")
-write_csv(study2_test, "study2_test.csv")
-
+kable(
+  data_table, 
+  align = c("l", "r", "r", "r"),
+  caption = "Demographic summary metrics by family income categories (NHANES 2021-2023)"
+)
 ```
 
+## Data Appendix
+
+```{r data-table}
+# Display the full cleaned dataset as an interactive, searchable table
+datatable(
+  demo_cleaned,
+  options = list(
+    pageLength = 10,      # rows shown per page
+    scrollX = TRUE,       # horizontal scroll for wide tables
+    autoWidth = TRUE
+  ),
+  caption = "Full cleaned NHANES 2021-2023 demographic dataset",
+  rownames = FALSE
+)
+```
