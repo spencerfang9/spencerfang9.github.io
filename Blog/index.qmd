@@ -2,3 +2,54 @@
 title: "Blog"
 ---
 
+---
+title: "Building My First Quarto Dashboard"
+date: 2026-09-25
+image: img/dashboard-preview.png
+---
+
+I built a Quarto Dashboard summarizing the 2021–2023 NHANES demographic cycle, focused on one deceptively simple question: **how does household income relate to who participants are — their age, their gender, and the shape of the sample as a whole?**
+
+## The build process
+
+I started with the raw `DEMO_L.XPT` file (NHANES ships its data in SAS transport format, which `haven::read_xpt()` handles nicely in R). From there the workflow was pretty standard tidyverse:
+
+1. **Clean and recode.** The key variable, `INDFMPIR` (income-to-poverty ratio), is continuous, so I bucketed it into four tiers: Low, Middle-Low, Middle-High, and High Income using thresholds roughly aligned with how the poverty ratio is conventionally interpreted (below 1.3, up to 3.5, up to 5.0, and above). I also recoded `RIAGENDR` into readable labels and binned age (`RIDAGEYR`) into three groups.
+2. **Drop incomplete cases.** Rows missing income or gender were filtered out rather than imputed, since for a descriptive dashboard I'd rather show an honest, smaller sample than paper over gaps.
+3. **Design around a question, not just a chart.** Instead of dumping every variable onto the page, I organized the dashboard around one comparison per panel: the overall income distribution, the age distribution, income-by-gender, and income-by-age. Value boxes at the top give the "headline numbers" (sample size, % low income, % female) before the reader digs into any chart.
+4. **Style consistency.** I kept a small fixed palette (navy, gold, a muted red) throughout so the value boxes, bar fills, and line markers all read as one visual system rather than default `ggplot2` colors.
+
+The whole thing runs as a single `.qmd` file rendered with Quarto's `format: dashboard`, which handles the tab navigation, sidebar, and responsive layout for free,I didn't have to hand-roll any HTML/CSS for the grid.
+
+## What I was actually testing
+
+I went in with three loose hypotheses, more exploratory than confirmatory:
+
+- **H1 — Income skews toward the middle.** I expected most participants to fall into the two middle-income tiers rather than the extremes, simply because poverty-ratio distributions in the general population tend to cluster rather than polarize.
+- **H2 — Gender composition is roughly balanced across income tiers.** My prior was that NHANES's household-level sampling wouldn't produce large gender imbalances by income, since gender isn't mechanistically tied to household income the way it might be tied to, say, occupation-specific surveys.
+- **H3 — Income skews older in the highest tier.** Income (and especially the poverty ratio, which reflects cumulative household resources) tends to rise with age up to a point — savings, dual-income households, and career progression should all push older participants toward higher income bands.
+
+## Analysis approach
+
+Nothing fancy on the statistics side — this was meant to be descriptive, not inferential. I used:
+
+- **Proportions and counts** (`dplyr::count()` + `scales::percent()`) for the overall income and age distributions.
+- **Stacked proportional bar charts** (`geom_bar(position = "fill")`) for the two cross-tabulations — income by gender, and income by age group — since proportions within each row are what actually answer "does gender/age shift the income mix," not raw counts.
+- **A line-and-point plot** for the age distribution, mostly for visual variety and because ordered categories with only three levels read cleanly as a trend line rather than a bar chart.
+
+I deliberately skipped chi-square tests or logistic regression here — with the dashboard's descriptive framing, I wanted every value on the page to be something a reader could re-derive by eye from the underlying bars, no black-box p-value required. That said, a natural next step would be a chi-square test of independence on the income × age and income × gender tables, which I may add in a follow-up post.
+
+## Results
+
+- **H1 confirmed, loosely.** The middle-income tiers (Middle-Low and Middle-High combined) did account for the largest share of participants, though the Low Income tier was larger than I expected a reminder that poverty-ratio cutoffs below 1.3 capture a meaningful chunk of any general-population sample, not just a thin tail.
+- **H2 mostly confirmed.** Gender split within each income tier stayed close to 50/50 across all four categories, with no tier showing a dramatic skew. If anything, this was the least surprising result and a good sanity check that the sampling design was doing what it's supposed to.
+- **H3 confirmed.** The 50+ age group made up a visibly larger share of the High Income tier than the <30 group did, consistent with income accumulating over a career. The <30 group was disproportionately concentrated in the Low Income tier which likely reflects early-career earners and students rather than long-term economic hardship, though the dashboard alone can't distinguish those two explanations.
+
+## Conclusions — and caveats
+
+The headline takeaway is unsurprising but nice to see confirmed in the data directly: **age is a much stronger driver of income-tier placement than gender is**, at least in this slice of NHANES. That's a useful reminder for how I think about confounders in my own research: age is rarely "just" a demographic variable to control for; here it's doing real explanatory work.
+
+A few honest caveats, in the spirit of not overselling a descriptive dashboard:
+- This is cross-sectional data, so "income rises with age" is a snapshot comparison across different people, not a longitudinal claim about anyone's income actually rising.I didn't apply NHANES's sampling weights (`WTINT2YR`/`WTMEC2YR`), which means these proportions describe *this sample*, not a weighted estimate of the U.S. population. For a dashboard meant to be quickly legible, I chose to leave the weighting complexity out — but it's the first thing I'd add if this were feeding into an actual analysis rather than a portfolio piece.No formal significance testing means "mostly confirmed" is a visual impression, not a statistical claim.
+
+If you want to poke around the dashboard yourself, it's linked in the nav bar above. And if you spot something in the analysis you'd do differently — or you also have opinions about the correct number of cats a household should have — [reach out](mailto:fxf116@case.edu), I'd love to hear it.

@@ -1,8 +1,11 @@
 ---
 title: "Dashboard"
-format: 
-  html:
-    page-layout: full
+format:
+  dashboard:
+    orientation: rows
+    theme:
+      - pulse
+      - ../html/styles.scss
 execute:
   echo: false
   warning: false
@@ -33,122 +36,89 @@ demo_cleaned <- demo_data %>%
     gender = factor(
       ifelse(RIAGENDR == 1, "Male", "Female"),
       levels = c("Male", "Female")
-    )
+    ),
+    age_group = case_when(
+      RIDAGEYR < 30                 ~ "<30",
+      RIDAGEYR >= 30 & RIDAGEYR < 50 ~ "30-49",
+      RIDAGEYR >= 50                ~ "50+"
+    ) %>% factor(levels = c("<30", "30-49", "50+"))
   ) %>%
-  filter(!is.na(income_4cat), !is.na(gender))
+  filter(!is.na(income_4cat), !is.na(gender), !is.na(age_group))
 
 navy_blue     <- "#12263F"
 golden_yellow <- "#B88E10"
+accent_red    <- "#B0413E"
 
-total_participants <- nrow(demo_cleaned)
-low_income_pct     <- mean(demo_cleaned$income_4cat == "Low Income") * 100
-high_income_pct    <- mean(demo_cleaned$income_4cat == "High Income") * 100
-
-income_summary <- demo_cleaned %>%
-  count(income_4cat) %>%
-  mutate(proportion = n / sum(n))
-
-data_table <- demo_cleaned %>%
-  group_by(`Income Category` = income_4cat) %>%
-  summarise(
-    `Total Participants` = n(),
-    `Mean Age` = round(mean(RIDAGEYR, na.rm = TRUE), 1),
-    `Proportion (%)` = sprintf("%.1f%%", n() / nrow(demo_cleaned) * 100)
-  )
+n_total    <- nrow(demo_cleaned)
+pct_low    <- mean(demo_cleaned$income_4cat == "Low Income") * 100
+pct_female <- mean(demo_cleaned$gender == "Female") * 100
 ```
-
-## {.sidebar}
-
-This dashboard displays statistics for:
-
-**Dataset**\
-NHANES 2021-2023
-
-**File**\
-DEMO_L.XPT
-
-**Component**\
-Demographics
-
-------------------------------------------------------------------
-
-**Total records**\
-`r nrow(demo_data)`
-
-**Records used (after filtering NA)**\
-`r nrow(demo_cleaned)`
-
-------------------------------------------------------------------
-
-::: {.callout-note collapse="true"}
-## Disclaimer
-Income categories are derived from the family income-to-poverty ratio (`INDFMPIR`). Records with missing income or gender values are excluded.
-:::
 
 # ALL
 
-## Row {height="22%"}
+## Row {height="20%"}
 
 ```{r}
 #| content: valuebox
-#| title: "Total participants"
-#| icon: people
-#| color: "#7C93AC"
-list(value = total_participants)
+#| title: "Total Participants"
+#| icon: people-fill
+#| color: "#12263F"
+n_total
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "Low income"
-#| icon: graph-down
-#| color: "#B36B6B"
-list(value = paste0(round(low_income_pct, 1), "%"))
-```
-
-```{r}
-#| content: valuebox
-#| title: "High income"
-#| icon: graph-up
+#| title: "Low Income %"
+#| icon: clipboard2-pulse
 #| color: "#B88E10"
-list(value = paste0(round(high_income_pct, 1), "%"))
+paste0(round(pct_low, 1), "%")
+```
+
+```{r}
+#| content: valuebox
+#| title: "Female %"
+#| icon: calendar3
+#| color: "#B0413E"
+paste0(round(pct_female, 1), "%")
 ```
 
 ## Row {height="40%"}
 
 ### Column {width="45%"}
 
-#### Income summary
-
 ```{r}
-data_table %>%
-  kable(align = c("l", "r", "r", "r"))
+#| title: "Income Category"
+demo_cleaned %>%
+  count(income_4cat) %>%
+  mutate(proportion = percent(n / sum(n), accuracy = 0.1)) %>%
+  rename(
+    `Income Category` = income_4cat,
+    `Number of Participants` = n,
+    `Proportion of Sample` = proportion
+  ) %>%
+  kable()
 ```
 
 ### Column {width="55%"}
 
-#### Family Income Category Distribution
-
 ```{r}
-ggplot(income_summary, aes(x = income_4cat, y = proportion, fill = income_4cat)) +
-  geom_col(width = 0.6, show.legend = FALSE) +
-  geom_text(
-    aes(label = paste0(n, " (", percent(proportion, accuracy = 0.1), ")")),
-    vjust = -0.5,
-    size = 3.5,
-    fontface = "bold"
-  ) +
-  scale_y_continuous(labels = percent_format(), limits = c(0, max(income_summary$proportion) * 1.15)) +
-  scale_fill_brewer(palette = "Set2") +
-  labs(x = NULL, y = "Proportion") +
-  theme_minimal(base_size = 12) +
-  theme(panel.grid.major.x = element_blank())
+#| title: "Age Distribution"
+demo_cleaned %>%
+  count(age_group) %>%
+  ggplot(aes(x = age_group, y = n, group = 1)) +
+  geom_line(color = "grey50", linewidth = 1) +
+  geom_point(size = 4, color = navy_blue) +
+  labs(x = NULL, y = "Count") +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank())
 ```
 
-## Row {height="38%"}
+## Row {height="40%"}
 
-#### Gender Composition Across Income Tiers
+### Column {width="50%"}
 
 ```{r}
+#| title: "Income by Gender"
 ggplot(demo_cleaned, aes(y = income_4cat, fill = gender)) +
   geom_bar(position = "fill", width = 0.6) +
   scale_x_continuous(labels = percent_format(), name = "Proportion") +
@@ -158,11 +128,53 @@ ggplot(demo_cleaned, aes(y = income_4cat, fill = gender)) +
   theme(legend.position = "right", panel.grid.major.y = element_blank())
 ```
 
-# DATA
-
-## Row
+### Column {width="50%"}
 
 ```{r}
+#| title: "Income by Age Group"
+ggplot(demo_cleaned, aes(y = age_group, fill = income_4cat)) +
+  geom_bar(position = "fill", width = 0.6) +
+  scale_x_continuous(labels = percent_format(), name = "Proportion") +
+  scale_y_discrete(name = NULL) +
+  scale_fill_brewer(palette = "Set2", name = "Income Category") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "right", panel.grid.major.y = element_blank())
+```
+
+# LOW INCOME
+
+## Row {height="100%"}
+
+```{r}
+#| title: "Low Income Subgroup — Age × Gender"
+demo_cleaned %>%
+  filter(income_4cat == "Low Income") %>%
+  ggplot(aes(x = age_group, fill = gender)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = c("Male" = navy_blue, "Female" = golden_yellow)) +
+  theme_minimal(base_size = 13)
+```
+
+# HIGH INCOME
+
+## Row {height="100%"}
+
+```{r}
+#| title: "High Income Subgroup — Age × Gender"
+demo_cleaned %>%
+  filter(income_4cat == "High Income") %>%
+  ggplot(aes(x = age_group, fill = gender)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = c("Male" = navy_blue, "Female" = golden_yellow)) +
+  theme_minimal(base_size = 13)
+```
+
+# DATA
+
+## Row {height="100%"}
+
+```{r}
+#| title: "Full Cleaned Dataset"
 datatable(
   demo_cleaned,
   options = list(pageLength = 10, scrollX = TRUE, autoWidth = TRUE),
@@ -170,3 +182,16 @@ datatable(
   rownames = FALSE
 )
 ```
+
+## {.sidebar}
+
+This dashboard displays statistics for:
+
+**Dataset**
+: NHANES
+
+**Cycle**
+: August 2021 – August 2023
+
+**Sample size**
+: `r n_total`
