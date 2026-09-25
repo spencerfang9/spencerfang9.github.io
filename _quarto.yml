@@ -14,6 +14,8 @@ website:
     left:
       - text: "Dashboard"
         href: Dashboard/index.qmd
+      - text: "Blog"
+        href: Blog/index.qmd
       - text: "CV"
         href: cv/index.qmd
     
