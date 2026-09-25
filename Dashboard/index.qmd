@@ -1,8 +1,10 @@
 ---
-title: "Dashboard"
-format: 
-  html:
-    page-layout: full
+title: "NHANES Demographics Dashboard"
+format:
+  dashboard:
+    nav-buttons: []
+    theme: cosmo
+    orientation: rows
 execute:
   echo: false
   warning: false
@@ -11,7 +13,7 @@ execute:
 
 ```{r setup}
 # Load required libraries
-# NOTE: Install these once manually in the R Console before rendering:
+# Install once in the R Console (not inside the render pipeline):
 # install.packages(c("haven", "dplyr", "ggplot2", "knitr", "scales", "DT"))
 library(haven)
 library(dplyr)
@@ -42,14 +44,102 @@ demo_cleaned <- demo_data %>%
   ) %>%
   filter(!is.na(income_4cat), !is.na(gender))
 
-navy_blue <- "#12263F"
+navy_blue     <- "#12263F"
 golden_yellow <- "#B88E10"
+dusty_blue    <- "#7C93AC"
+dusty_red     <- "#B36B6B"
 
-# Figure 1: Income category bar chart
+# ---- Value box numbers ----
+total_participants <- nrow(demo_cleaned)
+low_income_pct     <- mean(demo_cleaned$income_4cat == "Low Income") * 100
+high_income_pct    <- mean(demo_cleaned$income_4cat == "High Income") * 100
+
+# ---- Summary table data ----
 income_summary <- demo_cleaned %>%
   count(income_4cat) %>%
   mutate(proportion = n / sum(n))
 
+data_table <- demo_cleaned %>%
+  group_by(`Income Category` = income_4cat) %>%
+  summarise(
+    `Total Participants` = n(),
+    `Mean Age` = round(mean(RIDAGEYR, na.rm = TRUE), 1),
+    `Proportion (%)` = sprintf("%.1f%%", n() / nrow(demo_cleaned) * 100)
+  )
+```
+
+## {.sidebar}
+
+This dashboard displays statistics for:
+
+**Dataset**\
+NHANES 2021-2023
+
+**File**\
+DEMO_L.XPT
+
+**Component**\
+Demographics
+
+------------------------------------------------------------------
+
+**Total records**\
+`r nrow(demo_data)`
+
+**Records used (after filtering NA)**\
+`r nrow(demo_cleaned)`
+
+------------------------------------------------------------------
+
+::: {.callout-note collapse="true"}
+## Disclaimer
+Income categories are derived from the family income-to-poverty ratio (`INDFMPIR`). Records with missing income or gender values are excluded from this dashboard.
+:::
+
+# ALL
+
+## Row {height="22%"}
+
+```{r}
+#| content: valuebox
+#| title: "Total participants"
+#| icon: people
+#| color: "#7C93AC"
+list(value = total_participants)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Low income"
+#| icon: graph-down
+#| color: "#B36B6B"
+list(value = paste0(round(low_income_pct, 1), "%"))
+```
+
+```{r}
+#| content: valuebox
+#| title: "High income"
+#| icon: graph-up
+#| color: "#B88E10"
+list(value = paste0(round(high_income_pct, 1), "%"))
+```
+
+## Row {height="40%"}
+
+### Column {width="45%"}
+
+#### Income summary
+
+```{r}
+data_table %>%
+  kable(align = c("l", "r", "r", "r"))
+```
+
+### Column {width="55%"}
+
+#### Family Income Category Distribution
+
+```{r}
 ggplot(income_summary, aes(x = income_4cat, y = proportion, fill = income_4cat)) +
   geom_col(width = 0.6, show.legend = FALSE) +
   geom_text(
@@ -60,20 +150,21 @@ ggplot(income_summary, aes(x = income_4cat, y = proportion, fill = income_4cat))
   ) +
   scale_y_continuous(labels = percent_format(), limits = c(0, max(income_summary$proportion) * 1.15)) +
   scale_fill_brewer(palette = "Set2") +
-  labs(
-    title = "Family Income Category Distribution",
-    subtitle = "Proportion and total participant counts across income-to-poverty ratio tiers",
-    x = "Income Category",
-    y = "Proportion"
-  ) +
+  labs(x = NULL, y = "Proportion") +
   theme_minimal(base_size = 12) +
   theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(color = "gray40", size = 10),
+    axis.text.x = element_text(size = 10),
     panel.grid.major.x = element_blank()
   )
+```
 
-# Figure 2: Income category by gender stacked bar chart
+## Row {height="38%"}
+
+### Column {width="100%"}
+
+#### Gender Composition Across Income Tiers
+
+```{r}
 ggplot(demo_cleaned, aes(y = income_4cat, fill = gender)) +
   geom_bar(position = "fill", width = 0.6) +
   scale_x_continuous(labels = percent_format(), name = "Proportion") +
@@ -82,45 +173,21 @@ ggplot(demo_cleaned, aes(y = income_4cat, fill = gender)) +
     values = c("Male" = navy_blue, "Female" = golden_yellow),
     name = "Gender"
   ) +
-  labs(
-    title = "Gender Composition Across Income Tiers",
-    subtitle = "Percentage breakdown of males and females within each income category"
-  ) +
   theme_minimal(base_size = 12) +
   theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(color = "gray40", size = 10),
     legend.position = "right",
     panel.grid.major.y = element_blank()
   )
-
-# Summary table in the last section
-data_table <- demo_cleaned %>%
-  group_by(`Income Category` = income_4cat) %>%
-  summarise(
-    `Total Participants` = n(),
-    `Mean Age` = round(mean(RIDAGEYR, na.rm = TRUE), 1),
-    `Proportion (%)` = sprintf("%.1f%%", n() / nrow(demo_cleaned) * 100)
-  )
-
-kable(
-  data_table, 
-  align = c("l", "r", "r", "r"),
-  caption = "Demographic summary metrics by family income categories (NHANES 2021-2023)"
-)
 ```
 
-## Data Appendix
+# DATA
 
-```{r data-table}
-# Display the full cleaned dataset as an interactive, searchable table
+## Row
+
+```{r}
 datatable(
   demo_cleaned,
-  options = list(
-    pageLength = 10,      # rows shown per page
-    scrollX = TRUE,       # horizontal scroll for wide tables
-    autoWidth = TRUE
-  ),
+  options = list(pageLength = 10, scrollX = TRUE, autoWidth = TRUE),
   caption = "Full cleaned NHANES 2021-2023 demographic dataset",
   rownames = FALSE
 )
