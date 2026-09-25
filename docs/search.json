@@ -46,7 +46,7 @@
     "href": "Dashboard/index.html",
     "title": "Dashboard",
     "section": "",
-    "text": "Demographic summary metrics by family income categories (NHANES 2021-2023)\n\nIncome Category\nTotal Participants\nMean Age\nProportion (%)\n\n\n\nLow Income\n2669\n32.4\n27.0%\n\n\nMiddle-Low Income\n3759\n38.6\n38.0%\n\n\nMiddle-High Income\n1315\n42.3\n13.3%\n\n\nHigh Income\n2149\n42.8\n21.7%"
+    "text": "This dashboard displays statistics for:\nDataset\nNHANES 2021-2023\nFile\nDEMO_L.XPT\nComponent\nDemographics\n\nTotal records\n11933\nRecords used (after filtering NA)\n9892\n\n\n\n\n\n\n\nNoteDisclaimer\n\n\n\n\n\nIncome categories are derived from the family income-to-poverty ratio (INDFMPIR). Records with missing income or gender values are excluded."
   },
   {
     "objectID": "Dashboard/index.html#data-appendix",
@@ -54,5 +54,40 @@
     "title": "Dashboard",
     "section": "Data Appendix",
     "text": "Data Appendix"
+  },
+  {
+    "objectID": "Dashboard/index.html#section",
+    "href": "Dashboard/index.html#section",
+    "title": "Dashboard",
+    "section": "",
+    "text": "This dashboard displays statistics for:\nDataset\nNHANES 2021-2023\nFile\nDEMO_L.XPT\nComponent\nDemographics\n\nTotal records\n11933\nRecords used (after filtering NA)\n9892\n\n\n\n\n\n\n\nNoteDisclaimer\n\n\n\n\n\nIncome categories are derived from the family income-to-poverty ratio (INDFMPIR). Records with missing income or gender values are excluded."
+  },
+  {
+    "objectID": "Dashboard/index.html#row",
+    "href": "Dashboard/index.html#row",
+    "title": "Dashboard",
+    "section": "Row",
+    "text": "Row\n\n\n$value\n[1] 9892\n\n\n\n\n$value\n[1] \"27%\"\n\n\n\n\n$value\n[1] \"21.7%\""
+  },
+  {
+    "objectID": "Dashboard/index.html#row-1",
+    "href": "Dashboard/index.html#row-1",
+    "title": "Dashboard",
+    "section": "Row",
+    "text": "Row\nColumn\nIncome summary\n\n\n\n\nIncome Category\nTotal Participants\nMean Age\nProportion (%)\n\n\n\nLow Income\n2669\n32.4\n27.0%\n\n\nMiddle-Low Income\n3759\n38.6\n38.0%\n\n\nMiddle-High Income\n1315\n42.3\n13.3%\n\n\nHigh Income\n2149\n42.8\n21.7%\n\n\n\n\n\nColumn\nFamily Income Category Distribution"
+  },
+  {
+    "objectID": "Dashboard/index.html#row-2",
+    "href": "Dashboard/index.html#row-2",
+    "title": "Dashboard",
+    "section": "Row",
+    "text": "Row\nGender Composition Across Income Tiers"
+  },
+  {
+    "objectID": "Dashboard/index.html#row-3",
+    "href": "Dashboard/index.html#row-3",
+    "title": "Dashboard",
+    "section": "Row",
+    "text": "Row"
   }
 ]

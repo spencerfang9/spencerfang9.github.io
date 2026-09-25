@@ -1,10 +1,8 @@
 ---
-title: "NHANES Demographics Dashboard"
-format:
-  dashboard:
-    nav-buttons: []
-    theme: cosmo
-    orientation: rows
+title: "Dashboard"
+format: 
+  html:
+    page-layout: full
 execute:
   echo: false
   warning: false
