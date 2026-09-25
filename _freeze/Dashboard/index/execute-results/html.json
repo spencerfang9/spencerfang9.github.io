@@ -1,0 +1,15 @@
+{
+  "hash": "89843dc81796af4c3c26c711ba21b4eb",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: Dashboard\n---\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(palmerpenguins)\nlibrary(tidyverse)\nlibrary(haven)\n\ndemo_2021_2023 <- read_xpt(\"DEMO_L.xpt\")\nglimpse(demo_2021_2023)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nRows: 11,933\nColumns: 27\n$ SEQN     <dbl> 130378, 130379, 130380, 130381, 130382, 130383, 130384, 13038…\n$ SDDSRVYR <dbl> 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 1…\n$ RIDSTATR <dbl> 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2…\n$ RIAGENDR <dbl> 1, 1, 2, 2, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1…\n$ RIDAGEYR <dbl> 43, 66, 44, 5, 2, 3, 43, 65, 34, 68, 27, 59, 31, 33, 74, 39, …\n$ RIDAGEMN <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…\n$ RIDRETH1 <dbl> 5, 3, 2, 5, 3, 2, 1, 3, 1, 3, 4, 3, 3, 3, 3, 3, 3, 5, 3, 3, 1…\n$ RIDRETH3 <dbl> 6, 3, 2, 7, 3, 2, 1, 3, 1, 3, 4, 3, 3, 3, 3, 3, 3, 7, 3, 3, 1…\n$ RIDEXMON <dbl> 2, 2, 1, 1, 2, NA, NA, NA, 1, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1…\n$ RIDEXAGM <dbl> NA, NA, NA, 71, 34, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…\n$ DMQMILIZ <dbl> 2, 2, 2, NA, NA, NA, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2…\n$ DMDBORN4 <dbl> 2, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2…\n$ DMDYRUSR <dbl> 6, NA, 6, NA, NA, NA, 5, NA, NA, NA, NA, 6, NA, NA, NA, NA, N…\n$ DMDEDUC2 <dbl> 5, 5, 3, NA, NA, NA, 2, 3, 4, 5, 4, 5, 3, 3, 5, 5, 5, 3, 4, 3…\n$ DMDMARTZ <dbl> 1, 1, 1, NA, NA, NA, 3, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1…\n$ RIDEXPRG <dbl> NA, NA, 2, NA, NA, NA, NA, NA, NA, NA, 2, NA, 2, 2, NA, NA, N…\n$ DMDHHSIZ <dbl> 4, 2, 7, 2, 4, 3, 2, 2, 3, 1, 5, 2, 5, 3, 2, 3, 4, 1, 2, 2, 2…\n$ DMDHRGND <dbl> NA, NA, NA, 2, 2, 2, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ DMDHRAGZ <dbl> NA, NA, NA, 2, 2, 2, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ DMDHREDZ <dbl> NA, NA, NA, 2, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…\n$ DMDHRMAZ <dbl> NA, NA, NA, 3, 1, 1, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ DMDHSEDZ <dbl> NA, NA, NA, NA, 2, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…\n$ WTINT2YR <dbl> 50055.45, 29087.45, 80062.67, 38807.27, 30607.52, 43456.14, 1…\n$ WTMEC2YR <dbl> 54374.46, 34084.72, 81196.28, 55698.61, 36434.15, 0.00, 0.00,…\n$ SDMVSTRA <dbl> 173, 173, 174, 182, 182, 176, 179, 187, 179, 181, 187, 174, 1…\n$ SDMVPSU  <dbl> 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1…\n$ INDFMPIR <dbl> 5.00, 5.00, 1.41, 1.53, 3.60, NA, 0.63, 5.00, 1.33, 1.32, 0.8…\n```\n\n\n:::\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

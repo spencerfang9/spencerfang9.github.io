@@ -1,3 +1,136 @@
 ---
 title: Dashboard
 ---
+
+```{r, message = FALSE, warning = FALSE}
+library(palmerpenguins)
+library(tidyverse)
+library(haven)
+demo_2021_2023 <- read_xpt("DEMO_L.XPT")
+glimpse(demo_2021_2023)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  nhanesA,    # Access official NHANES data
+  tidyverse,  # Data cleaning and manipulation
+  janitor,    # Clean variable names
+  mice,       # Single imputation for missing values (Study 2)
+  rsample     # Train/Test data splitting (Study 2)
+)
+
+set.seed(431) # Set seed for reproducibility
+
+# Demographics data (DEMO)
+demo_raw <- nhanes("P_DEMO") %>%
+  select(SEQN, RIDSTATR, RIDAGEYR, RIAGENDR, RIDRETH3, INDHHIN2, DMDEDUC2)
+
+# Body measures data (BMX)
+bmx_raw <- nhanes("P_BMX") %>%
+  select(SEQN, BMXBMI, BMXHT, BMXWT, BMXWAIST)
+
+# Blood pressure data (BPXO)
+bpx_raw <- nhanes("P_BPXO") %>%
+  select(SEQN, BPXOSY1, BPXODI1)
+
+# Laboratory data (GHB & GLU)
+ghb_raw <- nhanes("P_GHB") %>% select(SEQN, LBXGH)  # Glycohemoglobin (HbA1c)
+glu_raw <- nhanes("P_GLU") %>% select(SEQN, LBXGLU) # Fasting Glucose
+
+raw_merged <- demo_raw %>%
+  left_join(bmx_raw, by = "SEQN") %>%
+  left_join(bpx_raw, by = "SEQN") %>%
+  left_join(ghb_raw, by = "SEQN") %>%
+  left_join(glu_raw, by = "SEQN")
+
+data_processed <- raw_merged %>%
+  # Filter 1: Mandatory check for examined subjects (RIDSTATR == 2)
+  filter(RIDSTATR == 2) %>%
+  
+  # Filter 2: Retain adult population only (Age 20 and over)
+  filter(RIDAGEYR >= 20) %>%
+  
+  mutate(
+    # Biological sex (1 = Male, 2 = Female)
+    sex = factor(case_when(
+      RIAGENDR == 1 ~ "Male",
+      RIAGENDR == 2 ~ "Female",
+      TRUE ~ NA_character_
+    )),
+    
+    # Race/Ethnicity (6 categories using RIDRETH3)
+    race_eth = factor(case_when(
+      RIDRETH3 == 1 ~ "Mexican American",
+      RIDRETH3 == 2 ~ "Other Hispanic",
+      RIDRETH3 == 3 ~ "Non-Hispanic White",
+      RIDRETH3 == 4 ~ "Non-Hispanic Black",
+      RIDRETH3 == 6 ~ "Non-Hispanic Asian",
+      RIDRETH3 == 7 ~ "Other/Multi-Racial",
+      TRUE ~ NA_character_
+    )),
+    
+    # Household income collapsed into 4 categories per project specifications
+    income_4cat = factor(case_when(
+      INDHHIN2 %in% c(1, 2, 3, 4, 13) ~ "Lowest (<20k)",
+      INDHHIN2 %in% c(5, 6, 7)         ~ "Low (20k-44.9k)",
+      INDHHIN2 %in% c(8, 9, 10)        ~ "High (45k-74.9k)",
+      INDHHIN2 %in% c(14, 15)          ~ "Highest (>=75k)",
+      TRUE ~ NA_character_ # Codes 77, 99, and missing are set to NA
+    ), levels = c("Lowest (<20k)", "Low (20k-44.9k)", "High (45k-74.9k)", "Highest (>=75k)")),
+    
+    # Educational attainment for adults (20+)
+    education = factor(case_when(
+      DMDEDUC2 %in% c(1, 2) ~ "Less than HS",
+      DMDEDUC2 == 3         ~ "HS Grad",
+      DMDEDUC2 == 4         ~ "Some College",
+      DMDEDUC2 == 5         ~ "College Grad",
+      TRUE ~ NA_character_
+    ), levels = c("Less than HS", "HS Grad", "Some College", "College Grad")),
+    
+    # Rename/recode quantitative variables
+    age = RIDAGEYR,
+    bmi = BMXBMI,
+    waist = BMXWAIST,
+    sys_bp = BPXOSY1,
+    dia_bp = BPXODI1,
+    hba1c = LBXGH,
+    fpg = LBXGLU
+  ) %>%
+  
+  # Drop unused factor levels
+  droplevels() %>%
+  
+  # Select final analytic variables
+  select(
+    SEQN, RIDSTATR, age, sex, race_eth, income_4cat, education,
+    bmi, waist, sys_bp, dia_bp, hba1c, fpg
+  )
+study1_df <- data_processed %>%
+  drop_na() # Remove any rows with missing values
+
+# Verify sample size (Must be between 500 and 7,500)
+cat("Study 1 Sample Size:", nrow(study1_df), "\n")
+write_csv(study1_df, "study1_clean.csv")
+
+study2_base <- data_processed %>%
+  filter(!is.na(hba1c) & !is.na(bmi)) # Complete cases on Outcome & Key Predictor only
+
+# Single imputation using MICE (m = 1) for remaining covariates
+mice_out <- mice(study2_base, m = 1, method = "pmm", printFlag = FALSE)
+study2_imputed <- complete(mice_out)
+
+cat("Study 2 Imputed Dataset Sample Size:", nrow(study2_imputed), "\n")
+
+# Partition dataset: 70% Training (Development), 30% Testing (Validation)
+split_obj <- initial_split(study2_imputed, prop = 0.70)
+study2_train <- training(split_obj)
+study2_test  <- testing(split_obj)
+
+cat("Study 2 Training Set Sample Size:", nrow(study2_train), "\n")
+cat("Study 2 Testing Set Sample Size:", nrow(study2_test), "\n")
+
+# Export datasets
+write_csv(study2_train, "study2_train.csv")
+write_csv(study2_test, "study2_test.csv")
+
+```
+
